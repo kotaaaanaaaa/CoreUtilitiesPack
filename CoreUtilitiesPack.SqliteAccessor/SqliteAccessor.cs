@@ -128,6 +128,45 @@ namespace CoreUtilitiesPack
         }
 
         /// <summary>
+        /// DELETEする
+        /// </summary>
+        /// <param name="table">対象のテーブル</param>
+        /// <param name="record">DELETEするデータ</param>
+        /// <returns>DELETEしたレコード数</returns>
+        public int Delete(string table, List<Dictionary<string, object>> records)
+        {
+            var result = 0;
+
+            foreach (var record in records)
+            {
+                var conditions = new List<string>();
+                foreach (var field in record)
+                {
+                    conditions.Add(field.Key + " = @" + field.Key);
+                }
+
+                var sql = "DELETE FROM " + table + " WHERE " + string.Join(" and ", conditions);
+
+                using (var conn = new SQLiteConnection(connectionString))
+                using (var cmd = new SQLiteCommand())
+                {
+                    conn.Open();
+                    cmd.Connection = conn;
+                    cmd.CommandText = sql;
+                    foreach (var field in record)
+                    {
+                        cmd.Parameters.Add(new SQLiteParameter(field.Key, field.Value));
+                    }
+
+                    result += cmd.ExecuteNonQuery();
+                    conn.Close();
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// テーブルのリストを取得する
         /// </summary>
         /// <returns>テーブルのリスト</returns>
@@ -248,7 +287,7 @@ namespace CoreUtilitiesPack
             var primaryKeys = new List<string>();
             var fields = new List<string>();
 
-            var sql = "create table " + tableName + " (";
+            var sql = "CREATE TABLE " + tableName + " (";
             foreach (var property in properties)
             {
                 var attribute = property.GetCustomAttribute(typeof(RecordAttribute)) as RecordAttribute;

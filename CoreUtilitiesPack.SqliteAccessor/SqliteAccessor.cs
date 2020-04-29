@@ -142,7 +142,14 @@ namespace CoreUtilitiesPack
                 var conditions = new List<string>();
                 foreach (var field in record)
                 {
-                    conditions.Add(field.Key + " = @" + field.Key);
+                    if (field.Value != null)
+                    {
+                        conditions.Add(field.Key + " = @" + field.Key);
+                    }
+                    else
+                    {
+                        conditions.Add(field.Key + " IS NULL");
+                    }
                 }
 
                 var sql = "DELETE FROM " + table + " WHERE " + string.Join(" and ", conditions);
